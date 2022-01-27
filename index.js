@@ -20,24 +20,6 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
-/////////admin verify wit jwt---firebase admin
-// async function verifyToken(req, res, next) {
-//     if (req?.headers?.authorization?.startsWith('Bearer ')) {
-//         const token = req.headers.authorization.split(' ')[1];
-//         console.log(token);
-
-//         try {
-
-//             const decodedUser = await admin.auth().verifyIdToken(token)
-//             req.decodedEmail = decodedUser.email;
-//             //email ta pacchena token thik ache
-//         } catch {
-
-//         }
-
-//     }
-//     next()
-// }
 
 //Generated API
 async function server() {
@@ -60,6 +42,63 @@ async function server() {
       console.log(result);
       res.json(result);
     });
+      
+      //////////////////// all user
+      app.get('/allusers', async (req, res) => {
+        const cursor = await blogsCollection.find({}).toArray()
+        res.json(cursor)
+    })
+            
+    app.post('/users', async (req, res) => {
+        const newUser = req.body;
+        const result = await blogsCollection.insertOne(newUser)
+        console.log(result);
+        res.json(result)
+    })
+      
+      
+          ///google--registration data save data bd
+          app.put('/users', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email }
+            const options = { upsert: true }
+            const updateDoc = { $set: user }
+            const result = await blogsCollection.updateOne(filter, updateDoc, options)
+            res.json(result)
+            })
+
+        //admin api---make admin--- with jwt token
+        app.put('/users/admin', async (req, res) => {
+            const user = req.body;
+            // console.log('put', req.decodedEmail);
+            const filter = { email: user.email }
+            const updateDoc = { $set: { role: 'admin' } };
+            const result = await blogsCollection.updateOne(filter, updateDoc)
+            res.json(result)
+        })
+      
+        app.put('/updateStatus/:id', (req, res) => {
+            const id = req.params.id;
+            const updateStatus = req.body.status;
+            // console.log(updateStatus);
+            const filter = { _id: ObjectId(id) };
+            blogsCollection.updateOne(filter, {
+                $set: { status: updateStatus },
+            })
+                .then(result => {
+                    res.send(result)
+                });
+        })
+      
+    //   Delete API
+    app.delete('/booking/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id: ObjectId(id)}
+        const result = await blogsCollection.deleteOne(filter)
+        console.log(result);
+        res.json(result)
+    })
+      
   } finally {
     // await client.close()
   }
