@@ -67,10 +67,9 @@ async function server() {
             res.json(result)
             })
 
-        //admin api---make admin--- with jwt token
+        //admin api---make admin--- 
         app.put('/users/admin', async (req, res) => {
             const user = req.body;
-            // console.log('put', req.decodedEmail);
             const filter = { email: user.email }
             const updateDoc = { $set: { role: 'admin' } };
             const result = await blogsCollection.updateOne(filter, updateDoc)
@@ -91,7 +90,7 @@ async function server() {
         })
       
     //   Delete API
-    app.delete('/booking/:id', async (req, res) => {
+    app.delete('/blogs/:id', async (req, res) => {
         const id = req.params.id;
         const filter = {_id: ObjectId(id)}
         const result = await blogsCollection.deleteOne(filter)
