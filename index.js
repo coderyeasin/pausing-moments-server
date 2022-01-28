@@ -20,7 +20,6 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
-
 //Generated API
 async function server() {
   try {
@@ -42,65 +41,90 @@ async function server() {
       console.log(result);
       res.json(result);
     });
-      
-      //////////////////// all user
-      app.get('/allusers', async (req, res) => {
-        const cursor = await blogsCollection.find({}).toArray()
-        res.json(cursor)
-    })
-            
-    app.post('/users', async (req, res) => {
-        const newUser = req.body;
-        const result = await blogsCollection.insertOne(newUser)
-        console.log(result);
-        res.json(result)
-    })
-      
-      
-          ///google--registration data save data bd
-          app.put('/users', async (req, res) => {
-            const user = req.body;
-            const filter = { email: user.email }
-            const options = { upsert: true }
-            const updateDoc = { $set: user }
-            const result = await blogsCollection.updateOne(filter, updateDoc, options)
-            res.json(result)
-            })
+    app.get("/allBlogs", async (req, res) => {
+      const cursor = await blogsCollection.find({}).toArray();
+      res.json(cursor);
+    });
+    //////////////////// all user
+    app.get("/allusers", async (req, res) => {
+      const cursor = await blogsCollection.find({}).toArray();
+      res.json(cursor);
+    });
 
-        //admin api---make admin--- 
-        app.get('/users/:email', async (req, res) => {
-            const email = req.params.email;
-            const query = {email: email}
-            const user = await blogsCollection.findOne(query)
-            let isAdmin = false;
-            if (user?.role === 'admin') {
-                isAdmin = true
-            }
-            res.json({admin : isAdmin})
-        })
-      
-        app.put('/updateStatus/:id', (req, res) => {
-            const id = req.params.id;
-            const updateStatus = req.body.status;
-            // console.log(updateStatus);
-            const filter = { _id: ObjectId(id) };
-            blogsCollection.updateOne(filter, {
-                $set: { status: updateStatus },
-            })
-                .then(result => {
-                    res.send(result)
-                });
-        })
-      
+    app.post("/users", async (req, res) => {
+      const newUser = req.body;
+      const result = await blogsCollection.insertOne(newUser);
+      console.log(result);
+      res.json(result);
+    });
+
+    app.get("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await blogsCollection.findOne(query);
+      res.send(result);
+    });
+
+    ///google--registration data save data bd
+    app.put("/users", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const options = { upsert: true };
+      const updateDoc = { $set: user };
+      const result = await blogsCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.json(result);
+    });
+
+    //admin api---make admin---
+    app.put("/users/admin", async (req, res) => {
+      const user = req.body;
+      console.log("put", req.headers.authorization);
+      const filter = { email: user.email };
+      const updateDoc = { $set: { role: "admin" } };
+      const result = await blogsCollection.updateOne(filter, updateDoc);
+      res.json(result);
+    });
+
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await blogsCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === "admin") {
+        isAdmin = true;
+      }
+      res.json({ admin: isAdmin });
+    });
+
+    app.put("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateOrder = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: { status: updateOrder.status },
+      };
+      const result = await blogsCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      console.log(result);
+      res.json(result);
+    });
+
     //   Delete API
-    app.delete('/blogs/:id', async (req, res) => {
-        const id = req.params.id;
-        const filter = {_id: ObjectId(id)}
-        const result = await blogsCollection.deleteOne(filter)
-        console.log(result);
-        res.json(result)
-    })
-      
+    app.delete("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await blogsCollection.deleteOne(filter);
+      console.log(result);
+      res.json(result);
+    });
   } finally {
     // await client.close()
   }
