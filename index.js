@@ -51,6 +51,13 @@ async function server() {
       res.json(cursor);
     });
 
+    app.get("/myBlogs/:email", async (req, res) => {
+      const result = await blogsCollection
+        .find({ email: req.params.email })
+        .toArray();
+      res.send(result);
+    });
+
     app.post("/users", async (req, res) => {
       const newUser = req.body;
       const result = await blogsCollection.insertOne(newUser);
